@@ -17,27 +17,49 @@ A DeepSeek Harness plugin that finds the npm scripts of the current workspace an
 
 ## Install
 
-From the plugin checkout:
+Straight from GitHub — no checkout, and nothing published to npm:
 
 ```sh
-dsh plugin --profile web add -w .
+dsh plugin --profile web add -w github:nobu121/dsh-npm-runner
 ```
 
-Or, from the published package:
+That is the whole install. DSH forwards the spec to `pnpm` inside the profile directory and then appends the package to `dsh.profile.bundles`, because `package.json` declares `dsh.bundle`. A git spec is resolved by its *installed* name rather than by the string you typed, so a later spec change, a rename or a tarball would all still reconcile correctly.
+
+pnpm resolves `github:` to a tarball of the repository's default branch and pins the commit it got in the profile's `pnpm-lock.yaml`, so the install is reproducible until you ask for a newer one:
 
 ```sh
-dsh plugin --profile web add -w dsh-npm-runner
+dsh plugin --profile web update -w dsh-npm-runner
 ```
 
-`dsh plugin` forwards to `pnpm` inside the profile directory and then appends the package to `dsh.profile.bundles`, because `package.json` declares `dsh.bundle`. **`-w` is not optional there**: the profile directory is itself a pnpm workspace root, and without the flag pnpm refuses the install with `ERR_PNPM_ADDING_TO_ROOT`. You can also mount it by hand from the profile's own `cordis.patch.yml` with the same `- insert:` row found in this package's `cordis.patch.yml`.
+**`-w` is not optional on `add`.** The profile directory is itself a pnpm workspace root (`pnpm-workspace.yaml` with `packages: ['.']`), and pnpm refuses before doing anything:
+
+```
+ERR_PNPM_ADDING_TO_ROOT  Running this command will add the dependency to the
+workspace root, which might not be what you want - if you really meant it, make
+it explicit by running this command again with the -w flag (or --workspace-root).
+```
+
+DSH then prints a second hint of its own — *"git-hosted plugins build on install via their `prepare` script, which pnpm blocks until allowed — add the exact key pnpm printed above under `allowBuilds`"* — but that one is keyed on the spec looking like a git URL, not on the actual failure. This package has no `prepare` script, so there is nothing to allow and adding the key would change nothing.
 
 > **Restart DSH afterwards.** The web plugin table is scanned and the boot manifest composed at profile boot, so a newly added bundle is picked up on the next start — not by a page refresh.
 
 To remove it:
 
 ```sh
-dsh plugin --profile web remove -w dsh-npm-runner
+dsh plugin --profile web remove dsh-npm-runner
 ```
+
+`remove` needs no `-w`, and it takes the package out of `dsh.profile.bundles` again.
+
+### From a checkout (for development)
+
+```sh
+dsh plugin --profile web add -w .
+```
+
+DSH anchors a relative path spec to the directory you invoke it from, so this one links the working tree instead of copying it (`pnpm` records it as `link:<abs path>`). Editing `lib/` then needs no reinstall — the client half is picked up by a page refresh, the host half by a restart. Installing from GitHub instead is a snapshot: it will not see your edits.
+
+You can also mount the plugin by hand from the profile's own `cordis.patch.yml` with the same `- insert:` row found in this package's `cordis.patch.yml`.
 
 ## Usage
 
