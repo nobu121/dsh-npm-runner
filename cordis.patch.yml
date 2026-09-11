@@ -1,0 +1,62 @@
+# dsh-npm-runner bundle patch.
+#
+# One host plugin row. The row is what makes the package visible to the web
+# plugin table: @deepseek-ai/dsh-client-modules scans the host Loader's entries
+# for packages declaring `dsh.client` (this package declares it in
+# package.json) and, on finding one, serves `exports["./client"]` to the
+# browser. Without the row the client half is never discovered.
+#
+# Install through the official CLI, which also appends the bundle to
+# `dsh.profile.bundles`:
+#
+#   dsh plugin --profile web add dsh-npm-runner
+#
+# Or mount it by hand from the profile's own cordis.patch.yml with the same
+# `- insert:` row.
+#
+# Configuration (row `config`, all optional):
+#   maxPackages: number  Cap on packages reported per scan. Default 60.
+#   maxJobs: number      Cap on concurrently retained background runs.
+#                        Default 12; the oldest finished run is evicted first.
+#   maxRunning: number   Cap on concurrently live runs. Default 6; further
+#                        starts are refused for that workspace.
+#   bufferBytes: number  Per-run retained output cap in bytes. Default 65536.
+#   registerJobs: bool   Also register each run with DSH's own background-job
+#                        registry, so it joins the job list and the agent can
+#                        use job_list / job_output / job_kill on it. Default
+#                        true. Set false to keep every run private to this
+#                        plugin's popover.
+#   jobScope: string     Who can see a registered run afterwards. Default
+#                        'session'.
+#                        DSH's registry can only scope a job by owner, or not
+#                        at all — it has no notion of a workspace — so neither
+#                        value expresses "visible in this workspace". The
+#                        plugin's own popover is the workspace-scoped view.
+#                          session — owned by this Session's live agent: shown
+#                                    only there, and reaped by DSH when that
+#                                    agent is disposed. Cannot surface one
+#                                    project's run inside another project.
+#                                    Needs a live agent; a brand-new Session
+#                                    keeps its runs plugin-only.
+#                          global  — no owner: listed in EVERY conversation,
+#                                    including ones in other workspaces, and
+#                                    never reaped. Use it when you want the
+#                                    agent to reach a run from anywhere and
+#                                    accept that reach being machine-wide.
+#
+# Runs shown in the plugin's own popover are filtered by workspace regardless
+# of this setting: same workspace visible, other workspaces not.
+#
+# The HTTP prefix is fixed at /npm-runner: the client half ships compiled into
+# this package and calls those exact paths, so it is not a knob.
+
+- insert:
+    - id: npm-runner
+      name: 'dsh-npm-runner'
+      config:
+        maxPackages: 60
+        maxJobs: 12
+        maxRunning: 6
+        bufferBytes: 65536
+        registerJobs: true
+        jobScope: session

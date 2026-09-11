@@ -1,0 +1,62 @@
+{
+  "name": "dsh-npm-runner",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness plugin: discovers the npm/pnpm/yarn/bun scripts of the current workspace (never descending into node_modules) and runs any of them in the background from a compact control in the composer area or the session header.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node tests/scan.test.mjs && node tests/runner.test.mjs && node tests/jobs.test.mjs && node tests/host.test.mjs && node tests/client.test.mjs",
+    "test:e2e": "node tests/real-run.test.mjs && node tests/examples.test.mjs",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "cordis",
+    "npm",
+    "npm-run",
+    "package-scripts",
+    "runner",
+    "background-jobs",
+    "monorepo",
+    "workspaces"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "nobu121"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nobu121/dsh-npm-runner.git"
+  },
+  "homepage": "https://github.com/nobu121/dsh-npm-runner",
+  "bugs": {
+    "url": "https://github.com/nobu121/dsh-npm-runner/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  }
+}

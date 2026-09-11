@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# The package has zero dependencies and ships no lockfile, so there is no
+# `npm ci` step: the checkout is already everything the suites need.
+jobs:
+  test:
+    name: node 20 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # One platform failing should not hide the other's result: the whole point
+      # of the pair is that the process-tree kill takes a different path on each.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Hermetic suite
+        run: npm test
+      - name: Real-process suite
+        run: npm run test:e2e

@@ -1,0 +1,15 @@
+{
+  "name": "dsh-npm-runner-examples",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Runnable fixtures for dsh-npm-runner: a long-lived service, a streamer, a high-volume writer, a process tree, a failure and a working-directory probe. Used by hand from the DSH popover and by tests/real-run.test.mjs.",
+  "type": "module",
+  "scripts": {
+    "serve": "node serve.mjs",
+    "stream": "node stream.mjs",
+    "chatty": "node chatty.mjs",
+    "tree": "node tree.mjs",
+    "fail": "node fail.mjs",
+    "where": "node where.mjs"
+  }
+}
