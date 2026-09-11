@@ -23,6 +23,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      # The package has no dependencies of its own. These two exist only so the
+      # three render cases in tests/client.test.mjs run instead of skipping.
+      - name: React for the client render cases
+        run: npm install --no-save --no-package-lock react@18 react-dom@18
       - name: Hermetic suite
         run: npm test
       - name: Real-process suite

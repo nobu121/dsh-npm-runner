@@ -182,6 +182,8 @@ npm run test:e2e  # 14 more; really runs npm — the fixtures, the run lifecycle
 
 The two suites that need a filesystem or a child process are the only ones that touch the outside world. Everything else drives an injected port or a fake: `lib/scan.js` is tested through an in-memory `io`, and `lib/runner.js` through an injected `spawn` plus injected signal senders, which is how the POSIX and win32 kill paths are both covered on either platform.
 
+The client suite renders its components through real React when it can find one — `DSH_PLUGIN_TEST_NODE_MODULES`, else the local DSH profile store, else this checkout's own `node_modules`. With none of those it still runs: three render cases skip and the other 35 assert the loader contract, the stylesheet, the label and visibility helpers and the collapse behaviour, none of which need React. CI installs React for exactly that reason, which is why the package can have no dependencies and still be fully tested.
+
 ## Limitations
 
 - **New sessions only, when a session exists.** With no session selected at all, DSH renders neither seat this plugin uses, so no control is shown. Runs are also matched by workspace, so they appear only once that Session's workspace resolves.

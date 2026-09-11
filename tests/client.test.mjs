@@ -86,7 +86,32 @@ globalThis.window = {
 
 await import('../lib/client.js')
 
+/**
+ * Stand-in for `react`, used only when no install was found. The factory reads
+ * `createElement`, `Fragment` and the hook entry points while defining the
+ * component, but calls none of them until that component renders — and the
+ * render cases skip in exactly this situation, so nothing here has to work.
+ * Declared before the factory runs, because the loader's `require` reads it.
+ */
+const reactStub = {
+  createElement: (type, props, ...children) => ({ type, props, children }),
+  Fragment: Symbol('react.Fragment'),
+  useState: () => [undefined, () => {}],
+  useEffect: () => {},
+  useRef: () => ({ current: null }),
+  useCallback: (fn) => fn,
+}
+
+/** The same idea for `react-dom`, whose only use is inside the render path. */
+const reactDomStub = {
+  createPortal: (children, container) => ({ children, container }),
+}
+
 const bundle = loaded[0]
+// The real install, or undefined on a bare checkout. Undefined is not fatal:
+// the factory still has to be evaluated, because the registration, CSS, label,
+// visibility and collapse cases below all read what it exports. Only the three
+// render cases need React to actually behave.
 const React = findReact()
 const client = bundle === undefined ? undefined : bundle.factory(makeRequire(React))
 
@@ -112,12 +137,10 @@ function findReact() {
 /** The `require` the module loader hands to a factory. */
 function makeRequire(react) {
   return (id) => {
-    if (id === 'react') {
-      if (react === undefined) throw new Error('react is not installed')
-      return react.react
-    }
+    if (id === 'react') return react === undefined ? reactStub : react.react
     if (id === 'react-dom') {
-      if (react === undefined) throw new Error('react-dom is not installed')
+      // Nothing but a real render needs this to work; a render needs a real install.
+      if (react === undefined) return reactDomStub
       return createRequire(join(react.dir, 'noop.js'))('react-dom')
     }
     throw new Error(`unexpected require: ${id}`)
