@@ -1,6 +1,7 @@
 # dsh-npm-runner
 
 [![CI](https://github.com/nobu121/dsh-npm-runner/actions/workflows/ci.yml/badge.svg)](https://github.com/nobu121/dsh-npm-runner/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/dsh-npm-runner.svg)](https://www.npmjs.com/package/dsh-npm-runner)
 
 A DeepSeek Harness plugin that finds the npm scripts of the current workspace and runs any of them in the background, from a small control that sits above the composer in a new session and in the header utility row of an established conversation.
 
@@ -17,15 +18,23 @@ A DeepSeek Harness plugin that finds the npm scripts of the current workspace an
 
 ## Install
 
-Straight from GitHub — no checkout, and nothing published to npm:
+From npm:
+
+```sh
+dsh plugin --profile web add -w dsh-npm-runner
+```
+
+Or straight from GitHub, if you would rather track the repository than a release:
 
 ```sh
 dsh plugin --profile web add -w github:nobu121/dsh-npm-runner
 ```
 
-That is the whole install. DSH forwards the spec to `pnpm` inside the profile directory and then appends the package to `dsh.profile.bundles`, because `package.json` declares `dsh.bundle`. A git spec is resolved by its *installed* name rather than by the string you typed, so a later spec change, a rename or a tarball would all still reconcile correctly.
+Either way DSH forwards the spec to `pnpm` inside the profile directory and then appends the package to `dsh.profile.bundles`, because `package.json` declares `dsh.bundle`. The reconciliation keys on the *installed* package name rather than on the string you typed, so both forms — and a tarball, or an alias — register identically. No build step runs on install: the browser half ships as source in the tarball.
 
-pnpm resolves `github:` to a tarball of the repository's default branch and pins the commit it got in the profile's `pnpm-lock.yaml`, so the install is reproducible until you ask for a newer one:
+The npm route is an ordinary versioned dependency: pnpm writes `"dsh-npm-runner": "^0.1.0"`. The GitHub route resolves `github:` to a tarball of the repository's default branch and pins whatever commit it got in the profile's `pnpm-lock.yaml` — that is the way to be on the newest `main`, and the way to install a commit that has no release yet.
+
+To move to a newer version either way:
 
 ```sh
 dsh plugin --profile web update -w dsh-npm-runner
@@ -39,7 +48,7 @@ workspace root, which might not be what you want - if you really meant it, make
 it explicit by running this command again with the -w flag (or --workspace-root).
 ```
 
-DSH then prints a second hint of its own — *"git-hosted plugins build on install via their `prepare` script, which pnpm blocks until allowed — add the exact key pnpm printed above under `allowBuilds`"* — but that one is keyed on the spec looking like a git URL, not on the actual failure. This package has no `prepare` script, so there is nothing to allow and adding the key would change nothing.
+On a git spec DSH then prints a second hint of its own — *"git-hosted plugins build on install via their `prepare` script, which pnpm blocks until allowed — add the exact key pnpm printed above under `allowBuilds`"* — but that one is keyed on the spec looking like a git URL rather than on the actual failure. This package has no `prepare` script, so there is nothing to allow and adding that key would change nothing.
 
 > **Restart DSH afterwards.** The web plugin table is scanned and the boot manifest composed at profile boot, so a newly added bundle is picked up on the next start — not by a page refresh.
 
@@ -57,7 +66,7 @@ dsh plugin --profile web remove dsh-npm-runner
 dsh plugin --profile web add -w .
 ```
 
-DSH anchors a relative path spec to the directory you invoke it from, so this one links the working tree instead of copying it (`pnpm` records it as `link:<abs path>`). Editing `lib/` then needs no reinstall — the client half is picked up by a page refresh, the host half by a restart. Installing from GitHub instead is a snapshot: it will not see your edits.
+DSH anchors a relative path spec to the directory you invoke it from, so this one links the working tree instead of copying it (`pnpm` records it as `link:<abs path>`). Editing `lib/` then needs no reinstall — the client half is picked up by a page refresh, the host half by a restart. Installing from npm or GitHub instead is a snapshot: it will not see your edits.
 
 You can also mount the plugin by hand from the profile's own `cordis.patch.yml` with the same `- insert:` row found in this package's `cordis.patch.yml`.
 

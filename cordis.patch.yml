@@ -9,6 +9,10 @@
 # Install through the official CLI, which also appends the bundle to
 # `dsh.profile.bundles`:
 #
+#   dsh plugin --profile web add -w dsh-npm-runner
+#
+# or straight from the repository:
+#
 #   dsh plugin --profile web add -w github:nobu121/dsh-npm-runner
 #
 # (`-w` is required: the profile directory is a pnpm workspace root. Use
