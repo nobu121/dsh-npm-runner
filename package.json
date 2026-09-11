@@ -1,6 +1,6 @@
 {
   "name": "dsh-npm-runner",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DeepSeek Harness plugin: discovers the npm/pnpm/yarn/bun scripts of the current workspace (never descending into node_modules) and runs any of them in the background from a compact control in the composer area or the session header.",
   "type": "module",
   "main": "lib/index.js",
